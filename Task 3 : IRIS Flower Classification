@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans, AgglomerativeClustering
+import scipy.cluster.hierarchy as sch
+from sklearn.mixture import GaussianMixture
+from sklearn.metrics import silhouette_score
+
+df = pd.read_csv('/content/IRIS (1).csv')
+
+df.dtypes
+
+class_counts = df['species'].value_counts()
+
+print("Class Counts:")
+print(class_counts)
+
+df['species'].value_counts(normalize=True).plot(kind='bar')
+plt.ylabel('Frequancy')
+plt.xlabel('Flower Species')
+plt.title('Freq Of Flowers')
+
+# Create a DataFrame with the relevant columns
+x = df[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']]
+x
+
+x = df.drop(columns=df.columns[-1])
+x.head(2)
+
+# Perform k-means clustering on the data
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(x)
+
+# Get the predicted labels for the data
+y_kmeans = kmeans.predict(x)
+
+# Plot the results
+plt.scatter(x.iloc[y_kmeans == 0, 0], x.iloc[y_kmeans == 0, 1], s=100, c='purple', marker='^', label='Iris-setosa', edgecolors='black')
+plt.scatter(x.iloc[y_kmeans == 1, 0], x.iloc[y_kmeans == 1, 1], s=100, c='orange', marker='o', label='Iris-versicolour', edgecolors='black')
+plt.scatter(x.iloc[y_kmeans == 2, 0], x.iloc[y_kmeans == 2, 1], s=100, c='green', marker='s', label='Iris-virginica', edgecolors='black')
+# Plotting the centroids of the clusters
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='red', marker='*', label='Centroids', edgecolors='black')
+
+plt.title('K-Means Clustering')
+plt.legend()
+plt.show()
