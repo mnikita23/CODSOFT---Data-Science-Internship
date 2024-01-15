@@ -1,0 +1,79 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Loading of the data and to handle the missing values
+df = pd.read_csv('/content/IMDb_Movies_India[1].csv', encoding="Latin1").dropna()
+df.columns
+
+# Summary of the data
+print('INFO:',"\n")
+print(df.info(),"\n\n\n\n\n")
+print('summary of the dataframe:',"\n",df.describe,"\n\n\n\n\n")
+print('nunique:',"\n",df['Genre'].nunique(),"\n\n\n\n\n")
+print('unique:',"\n",df['Year'].unique(),"\n\n\n\n\n")
+print('Rating.unique:',"\n",df.Rating.unique(),"\n\n\n\n\n")
+print('unique:',"\n",df['Duration'].unique(),"\n\n\n\n\n")
+print("groupby(['Genre']':","\n",df.groupby(['Genre']).count(),"\n\n\n\n\n")
+print("value_counts:","\n",df["Director"].value_counts().head(6),"\n\n\n\n\n")
+print('isnull().any():',"\n",df.isnull().any(),"\n\n\n\n\n")
+
+# To check the missing values if any column is containing
+def missing_values_percent(data):
+    missing_values = data.isna().sum()
+    percentage_missing = (missing_values / len(data) * 100).round(2)
+
+    result_movie = pd.DataFrame({'Missing Values': missing_values})
+
+    return result_movie
+
+
+result = missing_values_percent(data)
+result
+
+df.dropna(subset=['Rating'], inplace=True)
+
+(round(df.isnull().sum()/df.isnull().count(), 4)*100).sort_values(ascending=False)
+
+df['Year'] = df['Year'].apply(lambda x: x.split(')')[0])
+
+year_lst = []
+for val in df['Year']:
+    if len(val.split('(')) == 1:
+        year_lst.append(val.split('(')[0])
+    elif len(val.split('(')) > 1:
+        year_lst.append(val.split('(')[1])
+df['Year'] = year_lst
+
+sns.boxplot(x=df['Rating'])
+plt.title('Spreadness of rating')
+plt.show()
+sns.distplot(df['Rating'])
+plt.title('Distribution of rating')
+plt.show()
+sns.scatterplot(data=df, x='Duration', y='Rating', size=0.1, alpha=0.5)
+plt.title('Relationship between rating and duration')
+plt.show()
+
+df_update = df.drop(['Name'], axis=1)
+df_update.info()
+
+X = df_update.drop('Rating', axis=1)
+y = df_update['Rating']
+X.head()
+
+results = pd.DataFrame({'actual': [1, 2, 3, 4, 5], 'predicted': [2, 4, 6, 8, 10]})
+sns.scatterplot(x=results['actual'], y=results['predicted'])
+plt.title('Actual vs Predicted values')
+plt.show()
+
+df = df[df['Rating'] != 0]
+plt.figure(figsize=(16,7))
+plt.subplot(2,2,2)
+sns.distplot(df['Rating'],color='brown')
+plt.tight_layout()
+plt.show()
