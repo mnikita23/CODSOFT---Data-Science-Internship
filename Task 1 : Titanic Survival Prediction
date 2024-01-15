@@ -1,0 +1,82 @@
+import numpy as np
+import pandas as pd
+
+import os
+for dirname, _, filenames in os.walk('/kaggle/input'):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+
+ds = pd.read_csv('/content/Titanic-Dataset.csv')
+
+ds.head()
+
+ds.info()
+
+ds.isnull().sum()
+
+ds = ds.drop('Cabin',axis=1)
+
+ds.columns
+
+ds['Embarked'].value_counts()
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+ds['Embarked'] = le.fit_transform(ds['Embarked'])
+ds['Embarked'].value_counts()
+
+ds['Sex'] = le.fit_transform(ds['Sex'])
+ds_num = ds.select_dtypes(include=['number'])
+ds = ds.drop(columns=['Name','Ticket'])
+ds.head()
+
+ds_num = ds_num.drop(['Survived'],axis=1)
+ds_num.columns
+
+from sklearn.ensemble import HistGradientBoostingRegressor
+def imputing_reg(ds_num):
+    ds_copy = ds_num.copy()
+
+    for column in ds_copy.columns:
+        if ds_copy[column].isnull().sum() > 0:
+            known = ds_copy[column].notnull()
+            unknown = ds_copy[column].isnull()
+
+            xtrain = ds_copy[known].drop(column,axis=1)
+            ytrain = ds_copy[known][column]
+
+            model = HistGradientBoostingRegressor()
+            model.fit(xtrain,ytrain)
+
+            xtest = ds_copy[unknown].drop(column,axis=1)
+            ypred = model.predict(xtest)
+
+            ds_num.loc[unknown,column] = ypred
+
+    return ds_num
+
+ds_copy = imputing_reg(ds_num)
+
+ds_num.isnull().sum()
+
+ds['Age'] = ds_num['Age']
+ds.isnull().sum()
+
+ds.head()
+
+import matplotlib.pyplot as plt
+ds.boxplot()
+plt.xticks(rotation=45)
+plt.title('outliers in the titanic dataset')
+plt.xlabel('variables')
+plt.ylabel('values')
+plt.show()
+
+from sklearn.ensemble import IsolationForest
+numeric_data = ds.drop('Survived',axis=1)
+numeric_data = numeric_data.select_dtypes(include=['number'])
+numeric_data.columns
+
+import seaborn as sns
+sns.countplot(x=ds['Survived'])
